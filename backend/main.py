@@ -1,5 +1,3 @@
-from dotenv import load_dotenv
-load_dotenv()
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
@@ -10,7 +8,7 @@ import os
 app = FastAPI()
 
 # configure Gemini API
-genai.configure(api_key="YOUR_GEMINI_KEY")
+genai.configure(api_key="GEMINI_API_KEY")
 
 # updated model
 model = genai.GenerativeModel("gemini-2.5-flash")

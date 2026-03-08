@@ -1,8 +1,9 @@
 import os
-from openai import OpenAI
+import google.generativeai as genai
 
-# Load API key from environment variable
-client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+model = genai.GenerativeModel("gemini-2.5-flash")
 
 def generate_post(topic, platform, tone):
 
@@ -11,16 +12,11 @@ def generate_post(topic, platform, tone):
     Tone: {tone}
 
     Include:
-    1. Title
-    2. Caption
-    3. 5 Hashtags
+    Title
+    Caption
+    5 Hashtags
     """
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
+    response = model.generate_content(prompt)
 
-    return response.choices[0].message.content
+    return response.text
