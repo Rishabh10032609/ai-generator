@@ -1,11 +1,16 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from openai import OpenAI
+import google.generativeai as genai
 import os
 
 app = FastAPI()
 
+# configure Gemini API
+genai.configure(api_key="AIzaSyCGlNoqV0K_oxt9leCobNQFes_qQcDMxcI")
+
+# updated model
+model = genai.GenerativeModel("gemini-2.5-flash")
 origins = ["http://localhost:8100"]
 
 app.add_middleware(
@@ -16,10 +21,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-client = OpenAI(api_key="OPEN_API_KEY")
-
-
 class Topic(BaseModel):
     topic: str
 
@@ -27,26 +28,36 @@ class Topic(BaseModel):
 @app.post("/generate")
 def generate_post(data: Topic):
 
-    topic = data.topic
-
     prompt = f"""
-    Create a social media marketing post about {topic}.
+    Create a social media marketing post about {data.topic}.
 
-    Generate:
-    1. Title
-    2. Caption
-    3. 5 hashtags
+    Format output like this:
+
+    Title: <title>
+    Caption: <caption>
+    Hashtags: <5 hashtags>
     """
 
-    response = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[{"role": "user", "content": prompt}]
-    )
+    response = model.generate_content(prompt)
 
-    text = response.choices[0].message.content
+    text = response.text
+
+    lines = text.split("\n")
+
+    title = ""
+    caption = ""
+    hashtags = ""
+
+    for line in lines:
+        if "Title:" in line:
+            title = line.replace("Title:", "").strip()
+        elif "Caption:" in line:
+            caption = line.replace("Caption:", "").strip()
+        elif "Hashtags:" in line:
+            hashtags = line.replace("Hashtags:", "").strip()
 
     return {
-        "title": text.split("\n")[0],
-        "caption": text,
-        "hashtags": "#ai #marketing"
+        "title": title,
+        "caption": caption,
+        "hashtags": hashtags
     }
