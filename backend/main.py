@@ -1,13 +1,16 @@
+from dotenv import load_dotenv
+load_dotenv()
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 import google.generativeai as genai
+from routers.generator import router
 import os
 
 app = FastAPI()
 
 # configure Gemini API
-genai.configure(api_key="AIzaSyCGlNoqV0K_oxt9leCobNQFes_qQcDMxcI")
+genai.configure(api_key="YOUR_GEMINI_KEY")
 
 # updated model
 model = genai.GenerativeModel("gemini-2.5-flash")
@@ -20,6 +23,7 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+app.include_router(router)
 
 class Topic(BaseModel):
     topic: str

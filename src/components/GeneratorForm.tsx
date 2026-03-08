@@ -1,10 +1,12 @@
-import { IonInput, IonButton } from "@ionic/react";
+import { IonInput, IonButton, IonSelect, IonSelectOption } from "@ionic/react";
 import { useState } from "react";
 import ResultCard from "./ResultCard";
 
 const GeneratorForm: React.FC = () => {
 
 const [topic,setTopic] = useState("");
+const [platform,setPlatform] = useState("Instagram");
+const [tone,setTone] = useState("Professional");
 const [result,setResult] = useState<any>(null);
 
 const generatePost = async () => {
@@ -14,7 +16,11 @@ const generatePost = async () => {
   headers:{
    "Content-Type":"application/json"
   },
-  body: JSON.stringify({ topic })
+  body: JSON.stringify({
+    topic,
+    platform,
+    tone
+  })
  });
 
  const data = await response.json();
@@ -31,6 +37,23 @@ placeholder="Enter Topic"
 value={topic}
 onIonChange={(e:any)=>setTopic(e.target.value)}
 />
+
+<br/>
+
+<IonSelect value={platform} onIonChange={(e)=>setPlatform(e.detail.value)}>
+  <IonSelectOption value="Instagram">Instagram</IonSelectOption>
+  <IonSelectOption value="LinkedIn">LinkedIn</IonSelectOption>
+  <IonSelectOption value="Twitter">Twitter</IonSelectOption>
+  <IonSelectOption value="Facebook">Facebook</IonSelectOption>
+</IonSelect>
+
+<br/>
+
+<IonSelect value={tone} onIonChange={(e)=>setTone(e.detail.value)}>
+  <IonSelectOption value="Professional">Professional</IonSelectOption>
+  <IonSelectOption value="Casual">Casual</IonSelectOption>
+  <IonSelectOption value="Friendly">Friendly</IonSelectOption>
+</IonSelect>
 
 <br/>
 
