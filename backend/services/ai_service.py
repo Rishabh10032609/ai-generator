@@ -1,22 +1,128 @@
+# import os
+# import google.generativeai as genai
+
+# genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+# model = genai.GenerativeModel("gemini-2.5-flash")
+
+# def generate_post(topic, platform, tone):
+
+#     prompt = f"""
+#     Create a {platform} social media post about {topic}.
+#     Tone: {tone}
+
+#     Include:
+#     Title
+#     Caption
+#     5 Hashtags
+#     """
+
+#     response = model.generate_content(prompt)
+
+#     return response.text
+
 import os
-import google.generativeai as genai
+import requests
 
-genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+DEEPINFRA_KEY = os.getenv("DEEPINFRA_API_KEY")
+HF_TOKEN = os.getenv("HF_TOKEN")
 
-model = genai.GenerativeModel("gemini-2.5-flash")
+
+def detect_request_type(text: str):
+
+    image_keywords = [
+        "image",
+        "picture",
+        "photo",
+        "draw",
+        "illustration",
+        "logo",
+        "poster"
+    ]
+
+    for word in image_keywords:
+        if word in text.lower():
+            return "image"
+
+    return "text"
+
+
+# ---------------- TEXT GENERATION ---------------- #
+
+def generate_text(prompt):
+
+    url = "https://api.deepinfra.com/v1/openai/chat/completions"
+
+    headers = {
+        "Authorization": f"Bearer {DEEPINFRA_KEY}",
+        "Content-Type": "application/json"
+    }
+
+    payload = {
+        "model": "meta-llama/Meta-Llama-3-70B-Instruct",
+        "messages": [
+            {"role": "user", "content": prompt}
+        ]
+    }
+
+    r = requests.post(url, headers=headers, json=payload)
+
+    return r.json()["choices"][0]["message"]["content"]
+
+
+# ---------------- IMAGE GENERATION ---------------- #
+
+def generate_image(prompt):
+
+    url = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev"
+
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}"
+    }
+
+    response = requests.post(
+        url,
+        headers=headers,
+        json={"inputs": prompt}
+    )
+
+    filename = "generated.png"
+
+    with open(filename, "wb") as f:
+        f.write(response.content)
+
+    return filename
+
+
+# ---------------- MAIN ROUTER ---------------- #
 
 def generate_post(topic, platform, tone):
+
+    request_type = detect_request_type(topic)
+
+    if request_type == "image":
+
+        image_path = generate_image(topic)
+
+        return {
+            "type": "image",
+            "image": image_path
+        }
 
     prompt = f"""
     Create a {platform} social media post about {topic}.
     Tone: {tone}
 
-    Include:
-    Title
-    Caption
-    5 Hashtags
+    Format output like this:
+
+    Title: <title>
+    Caption: <caption>
+    Hashtags: <5 hashtags>
     """
 
-    response = model.generate_content(prompt)
+    text = generate_text(prompt)
 
-    return response.text
+    return {
+        "type": "text",
+        "content": text
+    }
