@@ -1,153 +1,149 @@
+# from fastapi import FastAPI
+# from pydantic import BaseModel
+# from fastapi.middleware.cors import CORSMiddleware
+# import google.generativeai as genai
+# from routers.generator import router
 # import os
-import google.generativeai as genai
 
+# app = FastAPI()
+
+# # configure Gemini API
 # genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
+# # updated model
 # model = genai.GenerativeModel("gemini-2.5-flash")
+# origins = ["http://localhost:8100"]
 
-# def generate_post(topic, platform, tone):
+# app.add_middleware(
+#     CORSMiddleware,
+#     allow_origins=origins,
+#     allow_credentials=True,
+#     allow_methods=["*"],
+#     allow_headers=["*"],
+# )
+# app.include_router(router)
+
+# class Topic(BaseModel):
+#     topic: str
+
+
+# @app.post("/generate")
+# def generate_post(data: Topic):
 
 #     prompt = f"""
-#     Create a {platform} social media post about {topic}.
-#     Tone: {tone}
+#     Create a social media marketing post about {data.topic}.
 
-#     Include:
-#     Title
-#     Caption
-#     5 Hashtags
+#     Format output like this:
+
+#     Title: <title>
+#     Caption: <caption>
+#     Hashtags: <5 hashtags>
 #     """
 
 #     response = model.generate_content(prompt)
 
-#     return response.text
+#     text = response.text
 
-import os
-import requests
+#     lines = text.split("\n")
 
-DEEPINFRA_KEY = ""
-HF_TOKEN = ""
+#     title = ""
+#     caption = ""
+#     hashtags = ""
+
+#     for line in lines:
+#         if "Title:" in line:
+#             title = line.replace("Title:", "").strip()
+#         elif "Caption:" in line:
+#             caption = line.replace("Caption:", "").strip()
+#         elif "Hashtags:" in line:
+#             hashtags = line.replace("Hashtags:", "").strip()
+
+#     return {
+#         "title": title,
+#         "caption": caption,
+#         "hashtags": hashtags
+#     }
+
+from fastapi import FastAPI
+from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from routers.generator import router
+from services.ai_service import generate_post as ai_generate_post
+app = FastAPI()
+
+origins = ["http://localhost:8100"]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+app.include_router(router)
 
 
-def detect_request_type(text: str):
+class Topic(BaseModel):
+    topic: str
 
-    image_keywords = [
-        "image",
-        "picture",
-        "photo",
-        "draw",
-        "illustration",
-        "logo",
-        "poster"
-    ]
+
+def detect_request_type(prompt: str):
+    """
+    Very simple detection of image vs text request
+    """
+    image_keywords = ["image", "picture", "draw", "generate image", "photo", "illustration"]
 
     for word in image_keywords:
-        if word in text.lower():
+        if word in prompt.lower():
             return "image"
 
     return "text"
 
 
-# ---------------- TEXT GENERATION ---------------- #
+@app.post("/generate")
+def generate_post(data: Topic):
 
-def generate_text(prompt):
+    try:
 
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+        result = ai_generate_post(
+            topic=data.topic,
+            platform="Instagram",
+            tone="engaging"
+        )
 
-    model = genai.GenerativeModel("gemini-2.5-flash")
+        if result["type"] == "image":
 
-    text_prompt = f"""
-    Create a {platform} social media post about {prompt}.
-    Tone: {tone}
+            return {
+                "type": "image",
+                "image_url": result["image"]
+            }
 
-    Include:
-    Title
-    Caption
-    5 Hashtags
-    """
+        text = result["content"]
 
-    response = model.generate_content(text_prompt)
+        lines = text.split("\n")
 
-    return response.text
+        title = ""
+        caption = ""
+        hashtags = ""
 
-    # url = "https://api.deepinfra.com/v1/openai/chat/completions"
-
-    # headers = {
-    #     "Authorization": f"Bearer {DEEPINFRA_KEY}",
-    #     "Content-Type": "application/json"
-    # }
-
-    # payload = {
-    #     "model": "meta-llama/Meta-Llama-3-70B-Instruct",
-    #     "messages": [
-    #         {"role": "user", "content": prompt}
-    #     ]
-    # }
-
-    # r = requests.post(url, headers=headers, json=payload)
-
-    # data = r.json()
-
-    # print("DeepInfra response:", data)
-
-    # if "choices" not in data:
-    #     raise Exception(f"DeepInfra API error: {data}")
-
-    # return data["choices"][0]["message"]["content"]
-
-
-# ---------------- IMAGE GENERATION ---------------- #
-
-def generate_image(prompt):
-
-    url = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0"
-
-    headers = {
-        "Authorization": f"Bearer {HF_TOKEN}"
-    }
-
-    payload = {
-        "inputs": prompt
-    }
-
-    response = requests.post(url, headers=headers, json=payload)
-
-    filename = "generated.png"
-
-    with open(filename, "wb") as f:
-        f.write(response.content)
-
-    return filename
-
-
-# ---------------- MAIN ROUTER ---------------- #
-
-def generate_post(topic, platform, tone):
-
-    request_type = detect_request_type(topic)
-
-    if request_type == "image":
-
-        image_path = generate_image(topic)
+        for line in lines:
+            if "Title:" in line:
+                title = line.replace("Title:", "").strip()
+            elif "Caption:" in line:
+                caption = line.replace("Caption:", "").strip()
+            elif "Hashtags:" in line:
+                hashtags = line.replace("Hashtags:", "").strip()
 
         return {
-            "type": "image",
-            "image": image_path
+            "type": "text",
+            "title": title,
+            "caption": caption,
+            "hashtags": hashtags
         }
 
-    prompt = f"""
-    Create a {platform} social media post about {topic}.
-    Tone: {tone}
+    except Exception as e:
 
-    Format output like this:
-
-    Title: <title>
-    Caption: <caption>
-    Hashtags: <5 hashtags>
-    """
-
-    text = generate_text(prompt)
-
-    return {
-        "type": "text",
-        "content": text
-    }
+        return {
+            "error": str(e)
+        }
