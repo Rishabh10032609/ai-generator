@@ -1,127 +1,142 @@
-# from fastapi import FastAPI
-# from pydantic import BaseModel
-# from fastapi.middleware.cors import CORSMiddleware
-# import google.generativeai as genai
-# from routers.generator import router
 # import os
+import google.generativeai as genai
 
-# app = FastAPI()
-
-# # configure Gemini API
 # genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-# # updated model
 # model = genai.GenerativeModel("gemini-2.5-flash")
-# origins = ["http://localhost:8100"]
 
-# app.add_middleware(
-#     CORSMiddleware,
-#     allow_origins=origins,
-#     allow_credentials=True,
-#     allow_methods=["*"],
-#     allow_headers=["*"],
-# )
-# app.include_router(router)
-
-# class Topic(BaseModel):
-#     topic: str
-
-
-# @app.post("/generate")
-# def generate_post(data: Topic):
+# def generate_post(topic, platform, tone):
 
 #     prompt = f"""
-#     Create a social media marketing post about {data.topic}.
+#     Create a {platform} social media post about {topic}.
+#     Tone: {tone}
 
-#     Format output like this:
-
-#     Title: <title>
-#     Caption: <caption>
-#     Hashtags: <5 hashtags>
+#     Include:
+#     Title
+#     Caption
+#     5 Hashtags
 #     """
 
 #     response = model.generate_content(prompt)
 
-#     text = response.text
+#     return response.text
 
-#     lines = text.split("\n")
+import os
+import requests
 
-#     title = ""
-#     caption = ""
-#     hashtags = ""
-
-#     for line in lines:
-#         if "Title:" in line:
-#             title = line.replace("Title:", "").strip()
-#         elif "Caption:" in line:
-#             caption = line.replace("Caption:", "").strip()
-#         elif "Hashtags:" in line:
-#             hashtags = line.replace("Hashtags:", "").strip()
-
-#     return {
-#         "title": title,
-#         "caption": caption,
-#         "hashtags": hashtags
-#     }
-
-from fastapi import FastAPI
-from pydantic import BaseModel
-from fastapi.middleware.cors import CORSMiddleware
-from routers.generator import router
-import g4f
-
-app = FastAPI()
-
-origins = ["http://localhost:8100"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=origins,
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
-
-app.include_router(router)
+DEEPINFRA_KEY = ""
+HF_TOKEN = ""
 
 
-class Topic(BaseModel):
-    topic: str
+def detect_request_type(text: str):
 
-
-def detect_request_type(prompt: str):
-    """
-    Very simple detection of image vs text request
-    """
-    image_keywords = ["image", "picture", "draw", "generate image", "photo", "illustration"]
+    image_keywords = [
+        "image",
+        "picture",
+        "photo",
+        "draw",
+        "illustration",
+        "logo",
+        "poster"
+    ]
 
     for word in image_keywords:
-        if word in prompt.lower():
+        if word in text.lower():
             return "image"
 
     return "text"
 
 
-@app.post("/generate")
-def generate_post(data: Topic):
+# ---------------- TEXT GENERATION ---------------- #
 
-    request_type = detect_request_type(data.topic)
+def generate_text(prompt):
 
-    # IMAGE GENERATION
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+    model = genai.GenerativeModel("gemini-2.5-flash")
+
+    text_prompt = f"""
+    Create a {platform} social media post about {prompt}.
+    Tone: {tone}
+
+    Include:
+    Title
+    Caption
+    5 Hashtags
+    """
+
+    response = model.generate_content(text_prompt)
+
+    return response.text
+
+    # url = "https://api.deepinfra.com/v1/openai/chat/completions"
+
+    # headers = {
+    #     "Authorization": f"Bearer {DEEPINFRA_KEY}",
+    #     "Content-Type": "application/json"
+    # }
+
+    # payload = {
+    #     "model": "meta-llama/Meta-Llama-3-70B-Instruct",
+    #     "messages": [
+    #         {"role": "user", "content": prompt}
+    #     ]
+    # }
+
+    # r = requests.post(url, headers=headers, json=payload)
+
+    # data = r.json()
+
+    # print("DeepInfra response:", data)
+
+    # if "choices" not in data:
+    #     raise Exception(f"DeepInfra API error: {data}")
+
+    # return data["choices"][0]["message"]["content"]
+
+
+# ---------------- IMAGE GENERATION ---------------- #
+
+def generate_image(prompt):
+
+    url = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0"
+
+    headers = {
+        "Authorization": f"Bearer {HF_TOKEN}"
+    }
+
+    payload = {
+        "inputs": prompt
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
+
+    filename = "generated.png"
+
+    with open(filename, "wb") as f:
+        f.write(response.content)
+
+    return filename
+
+
+# ---------------- MAIN ROUTER ---------------- #
+
+def generate_post(topic, platform, tone):
+
+    request_type = detect_request_type(topic)
+
     if request_type == "image":
 
-        image = g4f.Image.create(
-            prompt=data.topic
-        )
+        image_path = generate_image(topic)
 
         return {
             "type": "image",
-            "image_url": image
+            "image": image_path
         }
 
-    # TEXT GENERATION
     prompt = f"""
-    Create a social media marketing post about {data.topic}.
+    Create a {platform} social media post about {topic}.
+    Tone: {tone}
 
     Format output like this:
 
@@ -130,32 +145,9 @@ def generate_post(data: Topic):
     Hashtags: <5 hashtags>
     """
 
-    response = g4f.ChatCompletion.create(
-        model="gpt-4o-mini",
-        messages=[
-            {"role": "user", "content": prompt}
-        ]
-    )
-
-    text = response
-
-    lines = text.split("\n")
-
-    title = ""
-    caption = ""
-    hashtags = ""
-
-    for line in lines:
-        if "Title:" in line:
-            title = line.replace("Title:", "").strip()
-        elif "Caption:" in line:
-            caption = line.replace("Caption:", "").strip()
-        elif "Hashtags:" in line:
-            hashtags = line.replace("Hashtags:", "").strip()
+    text = generate_text(prompt)
 
     return {
         "type": "text",
-        "title": title,
-        "caption": caption,
-        "hashtags": hashtags
+        "content": text
     }
