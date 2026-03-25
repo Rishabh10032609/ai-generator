@@ -1,79 +1,126 @@
-import { IonInput, IonButton, IonSelect, IonSelectOption } from "@ionic/react";
-import { useState } from "react";
-import ResultCard from "./ResultCard";
-import { api } from "../services/api";
+import React, { useState } from 'react';
+import {
+  IonItem,
+  IonInput,
+  IonButton,
+  IonCard,
+  IonCardContent,
+  IonText,
+  IonSpinner
+} from '@ionic/react';
+import axios from 'axios';
 
 const GeneratorForm: React.FC = () => {
 
-const [topic,setTopic] = useState("");
-const [platform,setPlatform] = useState("Instagram");
-const [tone,setTone] = useState("Professional");
-const [result,setResult] = useState<any>(null);
+  const [topic, setTopic] = useState('');
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState<any>(null);
+  const [error, setError] = useState('');
 
-const generatePost = async () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    alert('Please login first');
-    return;
-  }
+  // 👉 BACKEND URL (for web)
+  const BASE_URL = 'http://127.0.0.1:8000';
 
-  try {
-    const data = await api.generatePost({ topic, platform, tone }, token);
-    setResult(data);
-  } catch (error) {
-    alert('Error generating post: ' + (error as Error).message);
-  }
-}
+  const generateContent = async () => {
 
-return (
+    if (!topic) return;
 
-<div>
+    setLoading(true);
+    setResult(null);
+    setError('');
 
-<IonInput
-placeholder="Enter Topic"
-value={topic}
-onIonChange={(e:any)=>setTopic(e.target.value)}
-/>
+    try {
 
-<br/>
+      const response = await axios.post(`${BASE_URL}/generate`, {
+        topic: topic
+      });
 
-<IonSelect value={platform} onIonChange={(e)=>setPlatform(e.detail.value)}>
-  <IonSelectOption value="Instagram">Instagram</IonSelectOption>
-  <IonSelectOption value="LinkedIn">LinkedIn</IonSelectOption>
-  <IonSelectOption value="Twitter">Twitter</IonSelectOption>
-  <IonSelectOption value="Facebook">Facebook</IonSelectOption>
-</IonSelect>
+      setResult(response.data);
 
-<br/>
+    } catch (err: any) {
+      console.error(err);
+      setError('Something went wrong. Check backend.');
+    }
 
-<IonSelect value={tone} onIonChange={(e)=>setTone(e.detail.value)}>
-  <IonSelectOption value="Professional">Professional</IonSelectOption>
-  <IonSelectOption value="Casual">Casual</IonSelectOption>
-  <IonSelectOption value="Friendly">Friendly</IonSelectOption>
-</IonSelect>
+    setLoading(false);
+  };
 
-<br/>
+  return (
+    <div>
 
-<IonButton expand="block" onClick={generatePost}>
-Generate Post
-</IonButton>
+      {/* INPUT */}
+      <IonItem>
+        <IonInput
+          placeholder="Try: gym post OR gym poster image"
+          value={topic}
+          onIonChange={(e) => setTopic(e.detail.value!)}
+        />
+      </IonItem>
 
-<br/>
+      {/* BUTTON */}
+      <IonButton
+        expand="block"
+        onClick={generateContent}
+        style={{ marginTop: '12px' }}
+      >
+        Generate
+      </IonButton>
 
-{result && (
+      {/* LOADING */}
+      {loading && (
+        <div style={{ textAlign: 'center', marginTop: '20px' }}>
+          <IonSpinner name="crescent" />
+        </div>
+      )}
 
-<ResultCard
-title={result.title}
-caption={result.caption}
-hashtags={result.hashtags}
-/>
+      {/* ERROR */}
+      {error && (
+        <IonText color="danger">
+          <p style={{ marginTop: '10px' }}>{error}</p>
+        </IonText>
+      )}
 
-)}
+      {/* TEXT RESULT */}
+      {result && result.type === 'text' && (
+        <IonCard style={{ marginTop: '20px' }}>
+          <IonCardContent>
 
-</div>
+            <IonText>
+              <h2>{result.title}</h2>
+            </IonText>
 
-);
+            <IonText>
+              <p>{result.caption}</p>
+            </IonText>
 
-}
+            <IonText color="primary">
+              <p>{result.hashtags}</p>
+            </IonText>
+
+          </IonCardContent>
+        </IonCard>
+      )}
+
+      {/* IMAGE RESULT */}
+      {result && result.type === 'image' && (
+        <IonCard style={{ marginTop: '20px', textAlign: 'center' }}>
+          <IonCardContent>
+
+            <img
+              src={result.image_url}
+              alt="Generated"
+              style={{
+                width: '100%',
+                borderRadius: '10px',
+                marginTop: '10px'
+              }}
+            />
+
+          </IonCardContent>
+        </IonCard>
+      )}
+
+    </div>
+  );
+};
 
 export default GeneratorForm;

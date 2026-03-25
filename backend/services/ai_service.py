@@ -1,45 +1,15 @@
-# import os
-import google.genai as genai
-
-# client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
-
-# def generate_post(topic, platform, tone):
-
-#     prompt = f"""
-#     Create a {platform} social media post about {topic}.
-#     Tone: {tone}
-
-#     Include:
-#     Title
-#     Caption
-#     5 Hashtags
-#     """
-
-#     response = client.models.generate_content(
-#         model="gemini-2.0-flash-exp",
-#         contents=prompt
-#     )
-
-#     return response.text
-
 import os
+import uuid
 import requests
+import google.generativeai as genai
 
 DEEPINFRA_KEY = ""
 HF_TOKEN = ""
 
+# ---------------- REQUEST TYPE ---------------- #
 
 def detect_request_type(text: str):
-
-    image_keywords = [
-        "image",
-        "picture",
-        "photo",
-        "draw",
-        "illustration",
-        "logo",
-        "poster"
-    ]
+    image_keywords = ["image", "picture", "photo", "draw", "illustration", "logo", "poster"]
 
     for word in image_keywords:
         if word in text.lower():
@@ -54,37 +24,11 @@ def generate_text(prompt):
 
     client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
-    response = client.models.generate_content(
-        model="gemini-2.0-flash-exp",
-        contents=prompt
-    )
+    model = genai.GenerativeModel("gemini-2.5-flash")
+
+    response = model.generate_content(prompt)
 
     return response.text
-
-    # url = "https://api.deepinfra.com/v1/openai/chat/completions"
-
-    # headers = {
-    #     "Authorization": f"Bearer {DEEPINFRA_KEY}",
-    #     "Content-Type": "application/json"
-    # }
-
-    # payload = {
-    #     "model": "meta-llama/Meta-Llama-3-70B-Instruct",
-    #     "messages": [
-    #         {"role": "user", "content": prompt}
-    #     ]
-    # }
-
-    # r = requests.post(url, headers=headers, json=payload)
-
-    # data = r.json()
-
-    # print("DeepInfra response:", data)
-
-    # if "choices" not in data:
-    #     raise Exception(f"DeepInfra API error: {data}")
-
-    # return data["choices"][0]["message"]["content"]
 
 
 # ---------------- IMAGE GENERATION ---------------- #
@@ -103,15 +47,19 @@ def generate_image(prompt):
 
     response = requests.post(url, headers=headers, json=payload)
 
-    filename = "generated.png"
+    # create folder if not exists
+    os.makedirs("generated_images", exist_ok=True)
 
-    with open(filename, "wb") as f:
+    filename = f"{uuid.uuid4()}.png"
+    filepath = f"generated_images/{filename}"
+
+    with open(filepath, "wb") as f:
         f.write(response.content)
 
     return filename
 
 
-# ---------------- MAIN ROUTER ---------------- #
+# ---------------- MAIN FUNCTION ---------------- #
 
 def generate_post(topic, platform, tone):
 
@@ -119,11 +67,11 @@ def generate_post(topic, platform, tone):
 
     if request_type == "image":
 
-        image_path = generate_image(topic)
+        filename = generate_image(topic)
 
         return {
             "type": "image",
-            "image": image_path
+            "image": filename
         }
 
     prompt = f"""
