@@ -1,8 +1,31 @@
-import os
-from google import genai
+# import os
+import google.generativeai as genai
+
+# genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+
+# model = genai.GenerativeModel("gemini-2.5-flash")
+
+# def generate_post(topic, platform, tone):
+
+#     prompt = f"""
+#     Create a {platform} social media post about {topic}.
+#     Tone: {tone}
+
+#     Include:
+#     Title
+#     Caption
+#     5 Hashtags
+#     """
+
+#     response = model.generate_content(prompt)
+
+#     return response.text
 
 import os
 import requests
+
+DEEPINFRA_KEY = ""
+HF_TOKEN = ""
 
 
 def detect_request_type(text: str):
@@ -28,12 +51,9 @@ def detect_request_type(text: str):
 
 def generate_text(prompt):
 
-    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
 
-    models = client.models.list()
-
-    for model in models:
-      print(f"- {model.name}")
+    model = genai.GenerativeModel("gemini-2.5-flash")
 
     text_prompt = f"""
     Create a {platform} social media post about {prompt}.
@@ -44,8 +64,6 @@ def generate_text(prompt):
     Caption
     5 Hashtags
     """
-
-    model = client.models.get("gemini-2.5-flash")
 
     response = model.generate_content(text_prompt)
 
@@ -84,7 +102,7 @@ def generate_image(prompt):
     url = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0"
 
     headers = {
-        "Authorization": f"Bearer {os.getenv("HF_TOKEN")}"
+        "Authorization": f"Bearer {HF_TOKEN}"
     }
 
     payload = {
