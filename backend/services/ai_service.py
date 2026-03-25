@@ -1,31 +1,8 @@
-# import os
-# import google.generativeai as genai
-
-# genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-# model = genai.GenerativeModel("gemini-2.5-flash")
-
-# def generate_post(topic, platform, tone):
-
-#     prompt = f"""
-#     Create a {platform} social media post about {topic}.
-#     Tone: {tone}
-
-#     Include:
-#     Title
-#     Caption
-#     5 Hashtags
-#     """
-
-#     response = model.generate_content(prompt)
-
-#     return response.text
+import os
+from google import genai
 
 import os
 import requests
-
-DEEPINFRA_KEY = os.getenv("DEEPINFRA_API_KEY")
-HF_TOKEN = os.getenv("HF_TOKEN")
 
 
 def detect_request_type(text: str):
@@ -51,40 +28,70 @@ def detect_request_type(text: str):
 
 def generate_text(prompt):
 
-    url = "https://api.deepinfra.com/v1/openai/chat/completions"
+    client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
-    headers = {
-        "Authorization": f"Bearer {DEEPINFRA_KEY}",
-        "Content-Type": "application/json"
-    }
+    models = client.models.list()
 
-    payload = {
-        "model": "meta-llama/Meta-Llama-3-70B-Instruct",
-        "messages": [
-            {"role": "user", "content": prompt}
-        ]
-    }
+    for model in models:
+      print(f"- {model.name}")
 
-    r = requests.post(url, headers=headers, json=payload)
+    text_prompt = f"""
+    Create a {platform} social media post about {prompt}.
+    Tone: {tone}
 
-    return r.json()["choices"][0]["message"]["content"]
+    Include:
+    Title
+    Caption
+    5 Hashtags
+    """
+
+    model = client.models.get("gemini-2.5-flash")
+
+    response = model.generate_content(text_prompt)
+
+    return response.text
+
+    # url = "https://api.deepinfra.com/v1/openai/chat/completions"
+
+    # headers = {
+    #     "Authorization": f"Bearer {DEEPINFRA_KEY}",
+    #     "Content-Type": "application/json"
+    # }
+
+    # payload = {
+    #     "model": "meta-llama/Meta-Llama-3-70B-Instruct",
+    #     "messages": [
+    #         {"role": "user", "content": prompt}
+    #     ]
+    # }
+
+    # r = requests.post(url, headers=headers, json=payload)
+
+    # data = r.json()
+
+    # print("DeepInfra response:", data)
+
+    # if "choices" not in data:
+    #     raise Exception(f"DeepInfra API error: {data}")
+
+    # return data["choices"][0]["message"]["content"]
 
 
 # ---------------- IMAGE GENERATION ---------------- #
 
 def generate_image(prompt):
 
-    url = "https://api-inference.huggingface.co/models/black-forest-labs/FLUX.1-dev"
+    url = "https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0"
 
     headers = {
-        "Authorization": f"Bearer {HF_TOKEN}"
+        "Authorization": f"Bearer {os.getenv("HF_TOKEN")}"
     }
 
-    response = requests.post(
-        url,
-        headers=headers,
-        json={"inputs": prompt}
-    )
+    payload = {
+        "inputs": prompt
+    }
+
+    response = requests.post(url, headers=headers, json=payload)
 
     filename = "generated.png"
 
