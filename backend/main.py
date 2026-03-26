@@ -1,7 +1,7 @@
 # from fastapi import FastAPI
 # from pydantic import BaseModel
 # from fastapi.middleware.cors import CORSMiddleware
-# import google.generativeai as genai
+# import google.genai as genai
 # from routers.generator import router
 # import os
 

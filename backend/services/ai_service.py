@@ -1,9 +1,7 @@
 # import os
-import google.generativeai as genai
+import google.genai as genai
 
-# genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
-
-# model = genai.GenerativeModel("gemini-2.5-flash")
+# client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
 
 # def generate_post(topic, platform, tone):
 
@@ -17,7 +15,10 @@ import google.generativeai as genai
 #     5 Hashtags
 #     """
 
-#     response = model.generate_content(prompt)
+#     response = client.models.generate_content(
+#         model="gemini-2.0-flash-exp",
+#         contents=prompt
+#     )
 
 #     return response.text
 
@@ -51,21 +52,12 @@ def detect_request_type(text: str):
 
 def generate_text(prompt):
 
-    genai.configure(api_key=os.getenv("GEMINI_API_KEY"))
+    client = genai.Client(api_key=os.getenv("GOOGLE_API_KEY"))
 
-    model = genai.GenerativeModel("gemini-2.5-flash")
-
-    text_prompt = f"""
-    Create a {platform} social media post about {prompt}.
-    Tone: {tone}
-
-    Include:
-    Title
-    Caption
-    5 Hashtags
-    """
-
-    response = model.generate_content(text_prompt)
+    response = client.models.generate_content(
+        model="gemini-2.0-flash-exp",
+        contents=prompt
+    )
 
     return response.text
 
