@@ -4,3 +4,21 @@ backend/venv/
 __pycache__/
 dist/
 build/
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Python virtual environments
+.venv/
+venv/
+env/
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db

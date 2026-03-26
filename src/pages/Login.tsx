@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useHistory } from 'react-router-dom';
 import { IonPage, IonHeader, IonToolbar, IonTitle, IonContent, IonInput, IonButton, IonItem, IonLabel, IonToast } from '@ionic/react';
 import { api } from '../services/api';
 
@@ -8,6 +9,15 @@ const Login: React.FC = () => {
   const [isRegister, setIsRegister] = useState(false);
   const [showToast, setShowToast] = useState(false);
   const [toastMessage, setToastMessage] = useState('');
+  const history = useHistory();
+
+  const isAuthenticated = () => !!localStorage.getItem('token');
+
+  useEffect(() => {
+    if (isAuthenticated()) {
+      history.replace('/dashboard');
+    }
+  }, [history]);
 
   const handleSubmit = async () => {
     try {
@@ -15,7 +25,7 @@ const Login: React.FC = () => {
       localStorage.setItem('token', data.access_token);
       setToastMessage(isRegister ? 'Registration successful!' : 'Login successful!');
       setShowToast(true);
-      // Redirect to dashboard or home
+      history.replace('/dashboard');
     } catch (error) {
       setToastMessage('Error: ' + (error as Error).message);
       setShowToast(true);
