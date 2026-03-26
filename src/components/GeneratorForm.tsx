@@ -1,6 +1,7 @@
 import { IonInput, IonButton, IonSelect, IonSelectOption } from "@ionic/react";
 import { useState } from "react";
 import ResultCard from "./ResultCard";
+import { api } from "../services/api";
 
 const GeneratorForm: React.FC = () => {
 
@@ -10,22 +11,18 @@ const [tone,setTone] = useState("Professional");
 const [result,setResult] = useState<any>(null);
 
 const generatePost = async () => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    alert('Please login first');
+    return;
+  }
 
- const response = await fetch("http://localhost:8000/generate",{
-  method:"POST",
-  headers:{
-   "Content-Type":"application/json"
-  },
-  body: JSON.stringify({
-    topic,
-    platform,
-    tone
-  })
- });
-
- const data = await response.json();
-
- setResult(data);
+  try {
+    const data = await api.generatePost({ topic, platform, tone }, token);
+    setResult(data);
+  } catch (error) {
+    alert('Error generating post: ' + (error as Error).message);
+  }
 }
 
 return (

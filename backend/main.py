@@ -67,9 +67,25 @@
 from fastapi import FastAPI
 from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
-from routers.generator import router
+from routers.generator import router as generator_router
+from routers.auth import router as auth_router
+from database.db import engine, Base
 from services.ai_service import generate_post as ai_generate_post
+from slowapi import Limiter, _rate_limit_exceeded_handler
+from slowapi.util import get_remote_address
+from slowapi.middleware import SlowAPIMiddleware
+from slowapi.errors import RateLimitExceeded
+
+# Create database tables
+Base.metadata.create_all(bind=engine)
+
+limiter = Limiter(key_func=get_remote_address, default_limits=["100/minute"])
+
 app = FastAPI()
+
+app.state.limiter = limiter
+app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
+app.add_middleware(SlowAPIMiddleware)
 
 origins = ["http://localhost:8100"]
 
@@ -81,7 +97,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(router)
+app.include_router(generator_router, prefix="/api")
+app.include_router(auth_router, prefix="/api/auth")
 
 
 class Topic(BaseModel):
@@ -94,9 +111,10 @@ def detect_request_type(prompt: str):
     """
     image_keywords = ["image", "picture", "draw", "generate image", "photo", "illustration"]
 
-    for word in image_keywords:
+    for word in prompt.lower():
         if word in prompt.lower():
             return "image"
+    return "text"
 
     return "text"
 
