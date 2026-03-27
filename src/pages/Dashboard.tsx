@@ -1,6 +1,15 @@
-import { IonButton, IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/react';
+import {
+  IonButton,
+  IonContent,
+  IonHeader,
+  IonPage,
+  IonTitle,
+  IonToolbar,
+  IonText
+} from '@ionic/react';
 import { useHistory } from 'react-router-dom';
 import GeneratorForm from '../components/GeneratorForm';
+import './Dashboard.css';
 
 const Dashboard: React.FC = () => {
   const history = useHistory();
@@ -12,16 +21,28 @@ const Dashboard: React.FC = () => {
 
   return (
     <IonPage>
+
+      {/* HEADER */}
       <IonHeader>
-        <IonToolbar>
-          <IonTitle>AI Content Generator</IonTitle>
-          <IonButton slot="end" fill="clear" onClick={handleLogout}>
+        <IonToolbar className="dashboard-header">
+          <IonTitle className="dashboard-title">
+            🚀 AI Content Generator
+          </IonTitle>
+
+          <IonButton
+            slot="end"
+            fill="solid"
+            color="light"
+            onClick={handleLogout}
+            className="logout-button"
+          >
             Logout
           </IonButton>
         </IonToolbar>
       </IonHeader>
 
-      <IonContent className="ion-padding">
+      {/* CONTENT */}
+      <IonContent className="dashboard-content">
         <GeneratorForm />
       </IonContent>
     </IonPage>
@@ -29,5 +50,3 @@ const Dashboard: React.FC = () => {
 };
 
 export default Dashboard;
-
-

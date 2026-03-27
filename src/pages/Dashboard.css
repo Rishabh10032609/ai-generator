@@ -1,0 +1,41 @@
+.dashboard-header {
+  --background: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 100%);
+  box-shadow: 0 4px 20px rgba(59, 130, 246, 0.3);
+}
+
+.dashboard-title {
+  color: white;
+  font-weight: 800;
+  font-size: 1.3rem;
+  letter-spacing: -0.5px;
+}
+
+.logout-button {
+  --border-radius: 10px;
+  --padding-start: 20px;
+  --padding-end: 20px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.logout-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.dashboard-content {
+  --background: linear-gradient(135deg, #f8fafc 0%, #eef2f7 100%);
+  padding: 0;
+}
+
+/* Dark theme support */
+@media (prefers-color-scheme: dark) {
+  .dashboard-header {
+    --background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+    box-shadow: 0 4px 20px rgba(96, 165, 250, 0.2);
+  }
+
+  .dashboard-content {
+    --background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+  }
+}
