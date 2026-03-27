@@ -4,8 +4,13 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from services.ai_service import generate_post as ai_generate_post
+from routers.auth import router as auth_router
+from database.db import Base, engine
+from models import user   # 👈 IMPORTANT
 
 app = FastAPI()
+app.include_router(auth_router)
+Base.metadata.create_all(bind=engine)
 
 # ---------------- CORS ---------------- #
 
