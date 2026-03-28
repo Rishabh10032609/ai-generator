@@ -10,5 +10,6 @@ class User(Base):
     hashed_password = Column(String, nullable=False)
     is_active = Column(Boolean, default=True)
     role = Column(String, default="user")  # e.g., "user", "admin"
+    requests_count = Column(Integer, default=0)  # Track number of content generation requests
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

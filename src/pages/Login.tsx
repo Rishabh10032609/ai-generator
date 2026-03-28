@@ -72,11 +72,16 @@ const Login: React.FC = () => {
       const data = isRegister 
         ? await api.register({ email, password }) 
         : await api.login({ email, password });
-      
+
       localStorage.setItem('token', data.access_token);
+      if (data.refresh_token) {
+        localStorage.setItem('refresh_token', data.refresh_token);
+      }
+
       history.replace('/dashboard');
     } catch (error: any) {
-      setError(error.response?.data?.detail || 'An error occurred. Please try again.');
+      const message = error?.message || 'An error occurred. Please try again.';
+      setError(message);
       setLoading(false);
     }
   };
