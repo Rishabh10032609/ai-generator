@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'io.ionic.starter', // CHANGE THIS to your actual Play Store app ID (e.g., com.example.aigenerator)
-  appName: 'ai-generator-app',
+  appId: 'com.aiwaveindia.aiwavegen',
+  appName: 'AIWave',
   webDir: 'dist',
   plugins: {
     SplashScreen: {
