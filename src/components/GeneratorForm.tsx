@@ -147,7 +147,7 @@ const GeneratorForm: React.FC = () => {
         tone: 'engaging'
       }, token);
 
-      setResult(response.content);
+      setResult(response);
       setUsage(response.usage);
     } catch (err: any) {
       console.error(err);
@@ -224,13 +224,13 @@ const GeneratorForm: React.FC = () => {
         <div className="search-container">
           <div className="search-input-wrapper">
             <IonIcon icon={search} className="search-icon" />
-            <IonInput
-              className="search-input"
-              placeholder="Enter any topic..."
-              value={topic}
-              onIonChange={(e) => setTopic(e.detail.value!)}
-              onKeyPress={(e) => e.key === 'Enter' && generateContent()}
-            />
+            <input
+  className="search-input"
+  placeholder="Enter any topic..."
+  value={topic}
+  onChange={(e) => setTopic(e.target.value)}
+  onKeyDown={(e) => e.key === 'Enter' && generateContent()}
+/>
           </div>
 
           {/* GENERATE BUTTON */}

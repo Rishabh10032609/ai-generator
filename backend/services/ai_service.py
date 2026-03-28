@@ -2,8 +2,7 @@ import uuid
 import base64
 import logging
 import requests
-import google.genai as genai
-
+import google.generativeai as genai
 from config import settings
 
 logger = logging.getLogger(__name__)
@@ -25,10 +24,14 @@ def generate_text(prompt: str) -> str:
         raise ValueError("GOOGLE_API_KEY is not configured")
     
     try:
-        client = genai.Client(api_key=settings.GOOGLE_API_KEY)
+        # ✅ FIX: configure instead of Client
+        genai.configure(api_key=settings.GOOGLE_API_KEY)
+
         model = genai.GenerativeModel(settings.GEMINI_MODEL)
         response = model.generate_content(prompt)
-        return response.text
+
+        return response.text if response.text else "No response generated"
+
     except Exception as e:
         logger.error(f"Text generation failed: {e}")
         raise
