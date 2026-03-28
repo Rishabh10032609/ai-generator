@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 from config import settings
 from services.ai_service import generate_post as ai_generate_post
 from routers.auth import router as auth_router
+from routers.version import router as version_router
 from database.db import Base, engine, get_db
 from models.user import User
 from auth_utils import get_current_active_user
@@ -21,6 +22,7 @@ logger = logging.getLogger(__name__)
 # ================ APP INITIALIZATION ================ #
 app = FastAPI(debug=settings.API_DEBUG)
 app.include_router(auth_router)
+app.include_router(version_router)
 Base.metadata.create_all(bind=engine)
 
 # ================ CORS MIDDLEWARE ================ #
