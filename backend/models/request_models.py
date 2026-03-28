@@ -1,4 +1,6 @@
 from pydantic import BaseModel, EmailStr
+from typing import Optional
+
 
 class PostRequest(BaseModel):
     topic: str
@@ -17,5 +19,6 @@ class Token(BaseModel):
     access_token: str
     token_type: str
 
+
 class TokenData(BaseModel):
-    email: str | None = None
+    email: Optional[str] = None

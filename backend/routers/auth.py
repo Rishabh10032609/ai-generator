@@ -16,8 +16,7 @@ from services.auth_service import (
     ALGORITHM
 )
 
-router = APIRouter()
-
+router = APIRouter(prefix="/api/auth", tags=["auth"])
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="auth/login")
 
 @router.post("/register", response_model=Token)
