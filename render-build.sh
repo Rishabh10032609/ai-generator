@@ -12,7 +12,7 @@ echo "Step 2: Clearing pip cache..."
 pip cache purge || true
 
 echo "Step 3: Installing dependencies with pre-built wheels..."
-pip install --no-cache-dir --prefer-binary -r requirements.txt
+pip install --no-cache-dir --prefer-binary -r backend/requirements.txt
 
 echo ""
 echo "✅ Build complete!"
