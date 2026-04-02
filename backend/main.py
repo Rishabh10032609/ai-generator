@@ -19,11 +19,17 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+settings.validate_required_keys()
+
 # ================ APP INITIALIZATION ================ #
 app = FastAPI(debug=settings.API_DEBUG)
 app.include_router(auth_router)
 app.include_router(version_router)
 Base.metadata.create_all(bind=engine)
+
+print("SECRET_KEY:", settings.SECRET_KEY)
+print("DATABASE_URL:", settings.DATABASE_URL)
+
 
 # ================ CORS MIDDLEWARE ================ #
 
