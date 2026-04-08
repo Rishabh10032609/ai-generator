@@ -3,7 +3,7 @@ import base64
 import logging
 import requests
 import google.generativeai as genai
-from config import settings
+from backend.config import settings
 
 logger = logging.getLogger(__name__)
 

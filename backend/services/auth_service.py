@@ -6,8 +6,8 @@ from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy.orm import Session
 
-from config import settings
-from models.user import User
+from backend.config import settings
+from backend.models.user import User
 
 logger = logging.getLogger(__name__)
 

@@ -4,13 +4,13 @@ from pydantic import BaseModel
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 
-from config import settings
-from services.ai_service import generate_post as ai_generate_post
-from routers.auth import router as auth_router
-from routers.version import router as version_router
-from database.db import Base, engine, get_db
-from models.user import User
-from auth_utils import get_current_active_user
+from backend.config import settings
+from backend.services.ai_service import generate_post as ai_generate_post
+from backend.routers.auth import router as auth_router
+from backend.routers.version import router as version_router
+from backend.database.db import Base, engine, get_db
+from backend.models.user import User
+from backend.auth_utils import get_current_active_user
 
 # ================ LOGGING ================ #
 logging.basicConfig(
