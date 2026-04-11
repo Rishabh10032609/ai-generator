@@ -15,7 +15,7 @@ from backend.services.auth_service import (
     get_password_hash,
     get_user_by_email,
 )
-from auth_utils import get_current_active_user
+from backend.auth_utils import get_current_active_user
 from jose import JWTError, jwt
 
 logger = logging.getLogger(__name__)
