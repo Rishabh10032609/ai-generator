@@ -5,10 +5,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy.orm import Session
 
 from backend.config import settings
-from database.db import get_db
-from models.user import User
-from models.request_models import UserCreate, Token, RefreshTokenRequest
-from services.auth_service import (
+from backend.database.db import get_db
+from backend.models.user import User
+from backend.models.request_models import UserCreate, Token, RefreshTokenRequest
+from backend.services.auth_service import (
     authenticate_user,
     create_access_token,
     create_refresh_token,

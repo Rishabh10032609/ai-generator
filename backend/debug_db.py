@@ -1,5 +1,5 @@
-from database.db import SessionLocal, engine, Base
-from models.user import User
+from backend.database.db import SessionLocal, engine, Base
+from backend.models.user import User
 
 print('DB exists and engine connects')
 Base.metadata.create_all(bind=engine)
